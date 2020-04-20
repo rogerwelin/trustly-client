@@ -1,10 +1,19 @@
-import axios from 'axios';
-import { ConfigInterface } from '../Interfaces';
-import { accountPayout, approveWithdrawal, balance, charge, denyWithdrawal, deposit, refund, selectAccount, withdraw } from '../specs';
-import { serialize } from './trustlySerializeData';
-import { parseError, readFile, root, sign, verify } from './utils';
+import axios from 'axios'
+import { ConfigInterface } from '../Interfaces'
+import {
+    accountPayout,
+    approveWithdrawal,
+    balance,
+    charge,
+    denyWithdrawal,
+    deposit,
+    refund,
+    selectAccount,
+    withdraw,
+} from '../specs'
+import { serialize } from './trustlySerializeData'
+import { parseError, readFile, root, sign, verify } from './utils'
 const uuidv4 = require('uuid/v4')
-
 
 export class Client {
     endpoint: string = 'https://test.trustly.com/api/1'
@@ -31,8 +40,8 @@ export class Client {
         this.publicKeyPath = config.publicKeyPath
             ? config.publicKeyPath
             : isProd
-                ? root('keys', 'trustly.com.public.pem')
-                : root('keys', 'test.trustly.com.public.pem')
+            ? root('keys', 'trustly.com.public.pem')
+            : root('keys', 'test.trustly.com.public.pem')
 
         this.endpoint = isProd
             ? 'https://trustly.com/api/1'
@@ -59,17 +68,22 @@ export class Client {
         this.ready = this._init()
     }
 
-    public _createMethod = method => async (params, attributes) => {
+    public _createMethod = (method) => async (params, attributes) => {
         await this.ready
         let req = this._prepareRequest(method, params, attributes)
         return this._makeRequest(req)
+    }
+
+    public async generateRequest(method, data = {}, attributes?) {
+        await this.ready
+        return this._prepareRequest(method, data, attributes)
     }
 
     _prepareRequest(method, data = {}, attributes?) {
         let req = {
             method,
             params: {},
-            version: '1.1'
+            version: '1.1',
         }
 
         let UUID = uuidv4()
@@ -77,13 +91,13 @@ export class Client {
         let Data = Object.assign({}, data, {
             Attributes: attributes ? attributes : null,
             Username: this.username,
-            Password: this.password
+            Password: this.password,
         })
 
         req.params = {
             Data: Data,
             UUID: UUID,
-            Signature: sign(serialize(method, UUID, Data), this.privateKey)
+            Signature: sign(serialize(method, UUID, Data), this.privateKey),
         }
 
         return req
@@ -104,10 +118,10 @@ export class Client {
                 uuid: notification.params.uuid,
                 method: notification.method,
                 data: {
-                    status: 'OK'
-                }
+                    status: 'OK',
+                },
             },
-            version: '1.1'
+            version: '1.1',
         }
 
         req.result.signature = sign(
@@ -158,12 +172,12 @@ export class Client {
         } catch (err) {
             throw {
                 error: err,
-                lastNotification: lastNotification
+                lastNotification: lastNotification,
             }
         }
     }
 
-    _makeRequest = reqParams => {
+    _makeRequest = (reqParams) => {
         this._lastRequest = reqParams
         this._lastResponse = null
 
@@ -172,7 +186,7 @@ export class Client {
             url: this.endpoint,
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
             data: reqParams,
-            timeout: 2000
+            timeout: 2000,
         })
             .then(({ data }) => {
                 this._lastResponse = data
@@ -192,20 +206,29 @@ export class Client {
 
                 throw 'Cant parse the response, check the lastResponse.'
             })
-            .catch(error => {
+            .catch((error) => {
                 parseError(error, this._lastRequest, this._lastResponse)
             })
     }
 
-    deposit = (data, attributes?) => this._createMethod(deposit.method)(data, attributes)
-    refund = (data, attributes?) => this._createMethod(refund.method)(data, attributes)
-    selectAccount = (data, attributes?) => this._createMethod(selectAccount.method)(data, attributes)
-    charge = (data, attributes?) => this._createMethod(charge.method)(data, attributes)
-    withdraw = (data, attributes?) => this._createMethod(withdraw.method)(data, attributes)
-    approveWithdrawal = (data, attributes?) => this._createMethod(approveWithdrawal.method)(data, attributes)
-    denyWithdrawal = (data, attributes?) => this._createMethod(denyWithdrawal.method)(data, attributes)
-    accountPayout = (data, attributes?) => this._createMethod(accountPayout.method)(data, attributes)
-    balance = (data, attributes?) => this._createMethod(balance.method)(data, attributes)
+    deposit = (data, attributes?) =>
+        this._createMethod(deposit.method)(data, attributes)
+    refund = (data, attributes?) =>
+        this._createMethod(refund.method)(data, attributes)
+    selectAccount = (data, attributes?) =>
+        this._createMethod(selectAccount.method)(data, attributes)
+    charge = (data, attributes?) =>
+        this._createMethod(charge.method)(data, attributes)
+    withdraw = (data, attributes?) =>
+        this._createMethod(withdraw.method)(data, attributes)
+    approveWithdrawal = (data, attributes?) =>
+        this._createMethod(approveWithdrawal.method)(data, attributes)
+    denyWithdrawal = (data, attributes?) =>
+        this._createMethod(denyWithdrawal.method)(data, attributes)
+    accountPayout = (data, attributes?) =>
+        this._createMethod(accountPayout.method)(data, attributes)
+    balance = (data, attributes?) =>
+        this._createMethod(balance.method)(data, attributes)
     request = (method, params, attributes?) =>
         this._createMethod(method)(params, attributes)
 

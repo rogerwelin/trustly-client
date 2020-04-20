@@ -13,6 +13,11 @@ export declare class Client {
     ready: Promise<any>;
     constructor(config: ConfigInterface);
     _createMethod: (method: any) => (params: any, attributes: any) => Promise<any>;
+    generateRequest(method: any, data?: {}, attributes?: any): Promise<{
+        method: any;
+        params: {};
+        version: string;
+    }>;
     _prepareRequest(method: any, data?: {}, attributes?: any): {
         method: any;
         params: {};
