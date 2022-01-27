@@ -1,5 +1,5 @@
 {
-  "name": "trustly-client",
+  "name": "nodejs-trustly-client",
   "version": "3.1.0",
   "description": "Trustly client for node.js integrations.",
   "main": "build/main/index.js",
